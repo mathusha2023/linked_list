@@ -23,6 +23,4 @@
 const char LOGFILE_NAME[] = "log.txt";
 const char PROGRAM_NAME[] = "linked_list";
 
-const size_t MAX_SIZE = 1000;
-
 #endif // CONFIG_H

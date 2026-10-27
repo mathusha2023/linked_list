@@ -9,17 +9,17 @@ int main(void)
     LinkedListError error = LL_OK;
     LinkedList list = {};
 
-    error = init_list(&list);
+    error = list_init(&list, 100);
     if (error != LL_OK)
     {
-        LOG("Error while initialization linked list: %s", get_str_ll_error(error));
+        LOG("Error while initialization linked list: %s", list_get_str_error(error));
         return error;
     }
 
-    error = destroy_list(&list);
+    error = list_destroy(&list);
     if (error != LL_OK)
     {
-        LOG("Error while destroing linked list: %s", get_str_ll_error(error));
+        LOG("Error while destroing linked list: %s", list_get_str_error(error));
         return error;
     }
 

@@ -4,7 +4,18 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+// расскомментировать для отключения специальных дебагерских логов
+// #define NLLDEBUG
+
+#ifndef NLLDEBUG
+#define lllog(message, ...) FLOG(message, ##__VA_ARGS__)
+#else
+#define lllog(message, ...)
+#endif // NLLDEBUG
+
+// настройки типа списка
 typedef int list_el_t;
+#define LIST_EL_SPECIFICATOR "%d"
 
 typedef enum LinkedListError
 {
@@ -33,14 +44,14 @@ typedef struct LinkedList
     struct Node *data;
     size_t head;
     size_t tail;
-    size_t length;
+    size_t capacity;
     // size_t free;
 } LinkedList;
 
 // API для взаимодействия с двусвязным списком
-LinkedListError init_list(LinkedList *list);
-LinkedListError destroy_list(LinkedList *list);
-LinkedListError assert_list(LinkedList *list);
-const char *get_str_ll_error(LinkedListError error);
+LinkedListError list_init(LinkedList *list, size_t start_size);
+LinkedListError list_destroy(LinkedList *list);
+LinkedListError list_assert(LinkedList *list);
+const char *list_get_str_error(LinkedListError error);
 
-#endif
+#endif // LINKED_LIST_H

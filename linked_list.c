@@ -1,85 +1,86 @@
 #include "linked_list.h"
 #include <stdlib.h>
+#include <assert.h>
 #include "config.h"
 #include "log.h"
 
-LinkedListError init_list(LinkedList *list)
+LinkedListError list_init(LinkedList *list, size_t start_size)
 {
     assert(list);
-    FLOG("Starting list %p initialization...", list);
+    lllog("Starting list [%p] initialization...", list);
 
     if (list->data != NULL)
     {
-        LOG("Initialization error: list is not empty");
+        lllog("Initialization error: list is not empty");
         return LL_ALREADY_INITIALIZED;
     }
 
-    struct Node *data = (struct Node *)calloc(MAX_SIZE, sizeof(struct Node));
+    struct Node *data = (struct Node *)calloc(start_size + 1, sizeof(struct Node));
     if (data == NULL)
     {
-        LOG("Error while allocating memory for list");
+        lllog("Error while allocating memory for list");
         return LL_MEMORY_ALLOCATION_ERROR;
     }
 
     list->data = data;
     list->head = 0;
     list->tail = 0;
-    list->length = MAX_SIZE;
+    list->capacity = start_size + 1;
 
     struct Node void_node = {.value = 0, .prev = -1, .next = -1};
 
-    for (size_t i = 1; i < MAX_SIZE; i++)
+    for (size_t i = 1; i < list->capacity; i++)
     {
-        assert(i < list->length);
+        assert(i < list->capacity);
         data[i] = void_node;
     }
 
-    FLOG("List %p initialization successful!", list);
+    lllog("List [%p] initialization successful!", list);
 
     return LL_OK;
 }
 
-LinkedListError destroy_list(LinkedList *list)
+LinkedListError list_destroy(LinkedList *list)
 {
     assert(list);
 
-    FLOG("Starting list %p destroing...", list);
+    lllog("Starting list [%p] destroing...", list);
 
-    LinkedListError error = assert_list(list);
+    LinkedListError error = list_assert(list);
     if (error != LL_OK)
     {
-        LOG("Error while destroing list: %s", get_str_ll_error(error));
+        lllog("Error while destroing list: %s", list_get_str_error(error));
         return error;
     }
 
     free_ptr(list->data);
     list->head = 0;
     list->tail = 0;
-    list->length = 0;
+    list->capacity = 0;
 
-    FLOG("List %p destroing successful!", list);
+    lllog("List [%p] destroing successful!", list);
 
     return LL_OK;
 }
 
-LinkedListError assert_list(LinkedList *list)
+LinkedListError list_assert(LinkedList *list)
 {
     assert(list);
 
     if (list->data == NULL)
     {
-        LOG("Error: list data is null");
+        lllog("Error: list data is null");
         return LL_NOT_INITIALIZED;
     }
-    if (!list->length)
+    if (!list->capacity)
     {
-        LOG("Error: list length is null");
+        lllog("Error: list length is null");
         return LL_NOT_INITIALIZED;
     }
     return LL_OK;
 }
 
-const char *get_str_ll_error(LinkedListError error)
+const char *list_get_str_error(LinkedListError error)
 {
     return LINKED_LIST_STR_ERRORS[error];
 }
