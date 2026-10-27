@@ -1,0 +1,6 @@
+.idea
+.vscode
+*.dSYM
+linked-list
+.VSCodeCounter
+log.txt
