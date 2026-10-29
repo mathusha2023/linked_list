@@ -6,10 +6,14 @@
 #include "log.h"
 
 static LinkedListError insert_node(LinkedList *list, struct Node *node, off_t *index);
+static LinkedListError grow_list(LinkedList *list);
+static void fill_list_with_zeros(LinkedList *list, size_t start_index);
 
 LinkedListError list_init(LinkedList *list, size_t start_size)
 {
     assert(list);
+    assert(start_size);
+
     lllog("Starting list [%p] initialization...", list);
 
     if (list->data != NULL)
@@ -30,13 +34,7 @@ LinkedListError list_init(LinkedList *list, size_t start_size)
     list->tail = 0;
     list->capacity = start_size + 1;
 
-    struct Node void_node = {.value = 0, .prev = -1, .next = -1};
-
-    for (size_t i = 1; i < list->capacity; i++)
-    {
-        assert(i < list->capacity);
-        data[i] = void_node;
-    }
+    fill_list_with_zeros(list, 1);
 
     lllog("List [%p] initialization successful!", list);
 
@@ -69,6 +67,7 @@ LinkedListError list_destroy(LinkedList *list)
 LinkedListError list_get_value(LinkedList *list, NodeID node_id, list_el_t *value)
 {
     assert(list);
+    assert(node_id.index > 0);
     assert(value);
 
     lllog("Starting list [%p] getting element at index %llu", list, node_id.index);
@@ -85,6 +84,7 @@ LinkedListError list_get_value(LinkedList *list, NodeID node_id, list_el_t *valu
 LinkedListError list_set_value(LinkedList *list, NodeID node_id, list_el_t value)
 {
     assert(list);
+    assert(node_id.index > 0);
 
     lllog("Starting list [%p] setting value " LIST_EL_SPECIFICATOR " to element at index %llu",
           list, value, node_id.index);
@@ -129,6 +129,7 @@ LinkedListError list_get_tail(LinkedList *list, NodeID *tail_node_id)
 LinkedListError list_get_next(LinkedList *list, NodeID node_id, NodeID *next_node_id)
 {
     assert(list);
+    assert(node_id.index > 0);
     assert(next_node_id);
 
     lllog("Starting list [%p] getting next element at index %llu", list, node_id.index);
@@ -155,6 +156,7 @@ LinkedListError list_get_next(LinkedList *list, NodeID node_id, NodeID *next_nod
 LinkedListError list_get_prev(LinkedList *list, NodeID node_id, NodeID *prev_node_id)
 {
     assert(list);
+    assert(node_id.index > 0);
     assert(prev_node_id);
 
     lllog("Starting list [%p] getting prev element at index %llu", list, node_id.index);
@@ -185,7 +187,6 @@ LinkedListError list_insert_end(LinkedList *list, list_el_t value, NodeID *new_h
 
     lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to head", list, value);
 
-    struct Node *old_head = &list->data[list->head];
     struct Node new_head = {
         .value = value,
         .prev = list->head,
@@ -198,6 +199,8 @@ LinkedListError list_insert_end(LinkedList *list, list_el_t value, NodeID *new_h
         lllog("Error while inserting node to list: %s", list_get_str_error(error));
         return error;
     }
+
+    struct Node *old_head = &list->data[list->head];
 
     if (list->head != 0)
     {
@@ -229,7 +232,6 @@ LinkedListError list_insert_start(LinkedList *list, list_el_t value, NodeID *new
 
     lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to tail", list, value);
 
-    struct Node *old_tail = &list->data[list->tail];
     struct Node new_tail = {
         .value = value,
         .prev = 0,
@@ -242,6 +244,8 @@ LinkedListError list_insert_start(LinkedList *list, list_el_t value, NodeID *new
         lllog("Error while inserting node to list: %s", list_get_str_error(error));
         return error;
     }
+
+    struct Node *old_tail = &list->data[list->tail];
 
     if (list->tail != 0)
     {
@@ -266,10 +270,12 @@ LinkedListError list_insert_start(LinkedList *list, list_el_t value, NodeID *new
     return LL_OK;
 }
 
+// если new_el_node_id != NULL, то в него записывается node_id нового элемента
 LinkedListError list_insert_after(LinkedList *list, NodeID node_id,
                                   list_el_t value, NodeID *new_el_node_id)
 {
     assert(list);
+    assert(node_id.index > 0);
 
     lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " after %lld index", list, value, node_id.index);
 
@@ -280,7 +286,6 @@ LinkedListError list_insert_after(LinkedList *list, NodeID node_id,
         return list_insert_end(list, value, new_el_node_id);
     }
 
-    struct Node *next_node = &list->data[prev_node->next];
     struct Node new_el = {
         .value = value,
         .prev = node_id.index,
@@ -294,6 +299,10 @@ LinkedListError list_insert_after(LinkedList *list, NodeID node_id,
         lllog("Error while inserting node to list: %s", list_get_str_error(error));
         return error;
     }
+
+    // переписываем указатель, так как в случае реаллокации памяти под массив старый может быть нерабочим
+    prev_node = &list->data[node_id.index];
+    struct Node *next_node = &list->data[prev_node->next];
 
     prev_node->next = new_el_index;
     next_node->prev = new_el_index;
@@ -312,6 +321,7 @@ LinkedListError list_insert_before(LinkedList *list, NodeID node_id,
                                    list_el_t value, NodeID *new_el_node_id)
 {
     assert(list);
+    assert(node_id.index > 0);
 
     lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " before %lld index", list, value, node_id.index);
 
@@ -347,7 +357,7 @@ void list_dump(LinkedList *list)
 {
     assert(list);
 
-    lllog("List [%p] dump ");
+    lllog("List [%p] dump ", list);
     lllog("{");
     lllog("    head = %lld", list->head);
     lllog("    tail = %lld", list->tail);
@@ -369,7 +379,7 @@ void list_dump(LinkedList *list)
         }
         else if (node.prev == 0 && node.next == 0)
         {
-            strncpy(note, "TAIL & HEAD", note_length);
+            strncpy(note, "HEAD & TAIL", note_length);
         }
         else if (node.prev == 0)
         {
@@ -407,17 +417,68 @@ static LinkedListError insert_node(LinkedList *list, struct Node *node, off_t *i
     assert(list);
     assert(node);
 
+    lllog("Starting insert node to list [%p] to the first free position", list);
+
     size_t i = 1;
-    while (list->data[i].prev >= 0 && i < list->capacity)
+
+    while (i < list->capacity && list->data[i].prev >= 0)
         i++;
 
     if (i == list->capacity)
     {
-        lllog("Error: data array oferflowed!");
-        return LL_OVERFLOW;
+        LinkedListError error = grow_list(list);
+        if (error != LL_OK)
+        {
+            lllog("Error while inserting node and growing list: %s", list_get_str_error(error));
+            return error;
+        }
     }
 
     list->data[i] = *node;
     *index = (off_t)i;
+
+    lllog("Insert node to list [%p] successful. Position: %lld", list, *index);
+
     return LL_OK;
+}
+
+static LinkedListError grow_list(LinkedList *list)
+{
+    assert(list);
+
+    lllog("Starting list [%p] growing. Current capacity: %llu", list, list->capacity);
+
+    struct Node *temp = (struct Node *)realloc(list->data, sizeof(struct Node) * list->capacity * 2);
+    if (temp == NULL)
+    {
+        lllog("Error: can not reallocate memory for list growing");
+        return LL_MEMORY_ALLOCATION_ERROR;
+    }
+
+    list->data = temp;
+    list->capacity *= 2;
+    fill_list_with_zeros(list, list->capacity / 2);
+
+    list_dump(list);
+
+    lllog("List [%p] growing successful. New capacity: %llu", list, list->capacity);
+
+    return LL_OK;
+}
+
+static void fill_list_with_zeros(LinkedList *list, size_t start_index)
+{
+    assert(list);
+
+    lllog("Starting filling list [%p] with zeros, start index: %llu", list, start_index);
+
+    struct Node void_node = {.value = 0, .prev = -1, .next = -1};
+
+    for (size_t i = start_index; i < list->capacity; i++)
+    {
+        assert(i < list->capacity);
+        list->data[i] = void_node;
+    }
+
+    lllog("Filling list [%p] with zeros successful", list);
 }
