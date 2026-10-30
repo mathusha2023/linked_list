@@ -73,8 +73,8 @@ LinkedListError list_get_tail(LinkedList *list, NodeID *tail_node_id);
 LinkedListError list_get_next(LinkedList *list, NodeID node_id, NodeID *next_node_id);
 LinkedListError list_get_prev(LinkedList *list, NodeID node_id, NodeID *prev_node_id);
 
-LinkedListError list_insert_start(LinkedList *list, list_el_t value, NodeID *new_tail_node_id);
-LinkedListError list_insert_end(LinkedList *list, list_el_t value, NodeID *new_head_node_id);
+LinkedListError list_insert_tail(LinkedList *list, list_el_t value, NodeID *new_tail_node_id);
+LinkedListError list_insert_head(LinkedList *list, list_el_t value, NodeID *new_head_node_id);
 LinkedListError list_insert_after(LinkedList *list, NodeID node_id,
                                   list_el_t value, NodeID *new_el_node_id);
 LinkedListError list_insert_before(LinkedList *list, NodeID node_id,
