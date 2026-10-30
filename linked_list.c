@@ -354,6 +354,50 @@ LinkedListError list_insert_before(LinkedList *list, NodeID node_id,
     return list_insert_after(list, (NodeID){.index = next_node->prev}, value, new_el_node_id);
 }
 
+LinkedListError list_remove(LinkedList *list, NodeID node_id)
+{
+    assert(list);
+    assert(node_id.index > 0);
+
+    lllog("Starting list [%p] removing element at %lld index", list, node_id.index);
+    list_dump(list);
+
+    struct Node *node = &list->data[node_id.index];
+    off_t prev_ind = node->prev, next_ind = node->next;
+    if (prev_ind == -1 || next_ind == -1)
+    {
+        lllog("Error: element at index %lld to remove does not exist", node_id.index);
+        return LL_EL_NOT_FOUND;
+    }
+
+    if (prev_ind == 0)
+    {
+        list->tail = next_ind;
+    }
+    else
+    {
+        list->data[prev_ind].next = next_ind;
+    }
+
+    if (next_ind == 0)
+    {
+        list->head = prev_ind;
+    }
+    else
+    {
+        list->data[next_ind].prev = prev_ind;
+    }
+
+    node->next = -1;
+    node->prev = -1;
+    node->value = 0;
+
+    lllog("List [%p] removing element at %lld index successful", list, node_id.index);
+    list_dump(list);
+
+    return LL_OK;
+}
+
 LinkedListError list_assert(LinkedList *list)
 {
     assert(list);

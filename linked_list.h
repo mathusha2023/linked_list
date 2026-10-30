@@ -27,6 +27,7 @@ typedef enum LinkedListError
     LL_LAST_ELEMENT,
     LL_FIRST_ELEMENT,
     LL_OVERFLOW,
+    LL_EL_NOT_FOUND,
 } LinkedListError;
 
 static const char *LINKED_LIST_STR_ERRORS[] = {
@@ -38,6 +39,7 @@ static const char *LINKED_LIST_STR_ERRORS[] = {
     "LL_LAST_ELEMENT",
     "LL_FIRST_ELEMENT",
     "LL_OVERFLOW",
+    "LL_EL_NOT_FOUND",
 };
 
 struct Node
@@ -79,6 +81,8 @@ LinkedListError list_insert_after(LinkedList *list, NodeID node_id,
                                   list_el_t value, NodeID *new_el_node_id);
 LinkedListError list_insert_before(LinkedList *list, NodeID node_id,
                                    list_el_t value, NodeID *new_el_node_id);
+
+LinkedListError list_remove(LinkedList *list, NodeID node_id);
 
 LinkedListError list_assert(LinkedList *list);
 

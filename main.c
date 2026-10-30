@@ -18,32 +18,22 @@ int main(void)
         return error;
     }
 
-    list_insert_head(&list, -20, &node_id);
-    list_insert_tail(&list, -10, &node_id);
-
-    for (int i = 1; i < 20; i++)
+    error = list_insert_head(&list, 10, &node_id);
+    if (error != LL_OK)
     {
-        error = list_insert_after(&list, node_id, i * 10, &node_id);
-        if (error != LL_OK)
-        {
-            LOG("Error while initialization linked list: %s", list_get_str_error(error));
-            return error;
-        }
+        LOG("Error while inserting el to head: %s", list_get_str_error(error));
+        return error;
     }
 
-    error = list_insert_after(&list, node_id, 35, &node_id);
+    error = list_insert_after(&list, node_id, 20, &node_id);
+    error = list_insert_tail(&list, 10, &node_id);
 
-    error = list_insert_before(&list, node_id, 37, &node_id);
-
-    error = list_get_value(&list, node_id, &value);
-    printf("Value1: " LIST_EL_SPECIFICATOR "\n", value);
-
-    error = list_set_value(&list, (NodeID){.index = node_id.index - 1}, 67);
-
-    error = list_get_value(&list, (NodeID){.index = node_id.index - 1}, &value);
-    printf("Value2: " LIST_EL_SPECIFICATOR "\n", value);
-
-    error = list_insert_after(&list, (NodeID){.index = list.head}, 1488, NULL);
+    error = list_remove(&list, node_id);
+    if (error != LL_OK)
+    {
+        LOG("Error while removing el: %s", list_get_str_error(error));
+        return error;
+    }
 
     error = list_destroy(&list);
     if (error != LL_OK)
