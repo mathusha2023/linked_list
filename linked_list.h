@@ -15,7 +15,10 @@
 
 // настройки типа списка
 typedef int list_el_t;
-#define LIST_EL_SPECIFICATOR "%7d"
+#define __LIST_EL_SPECIFICATOR_LETTER__ "d"
+
+#define LIST_EL_SPECIFICATOR "%" __LIST_EL_SPECIFICATOR_LETTER__
+#define LIST_EL_SPECIFICATOR_WITH_SIZE "%7" __LIST_EL_SPECIFICATOR_LETTER__
 
 typedef enum LinkedListError
 {
@@ -28,6 +31,7 @@ typedef enum LinkedListError
     LL_FIRST_ELEMENT,
     LL_OVERFLOW,
     LL_EL_NOT_FOUND,
+    LL_INSERT_BY_FREE_ELEMENT,
 } LinkedListError;
 
 static const char *LINKED_LIST_STR_ERRORS[] = {
@@ -40,6 +44,7 @@ static const char *LINKED_LIST_STR_ERRORS[] = {
     "LL_FIRST_ELEMENT",
     "LL_OVERFLOW",
     "LL_EL_NOT_FOUND",
+    "LL_INSERT_BY_FREE_ELEMENT",
 };
 
 struct Node

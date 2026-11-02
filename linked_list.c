@@ -3,8 +3,10 @@
 #include <assert.h>
 #include <string.h>
 #include "config.h"
+#include "graphviz.h"
 #include "log.h"
 
+static void list_text_dump(LinkedList *list);
 static LinkedListError insert_node(LinkedList *list, struct Node *node, off_t *index);
 static LinkedListError grow_list(LinkedList *list);
 static void fill_list_with_zeros(LinkedList *list, size_t start_index);
@@ -14,7 +16,7 @@ LinkedListError list_init(LinkedList *list, size_t start_size)
     assert(list);
     assert(start_size);
 
-    lllog("Starting list [%p] initialization...", list);
+    lllog("\n\n<hr><h1>Starting list [%p] initialization...</h1>", list);
     list_dump(list);
 
     if (list->data != NULL)
@@ -47,7 +49,7 @@ LinkedListError list_destroy(LinkedList *list)
 {
     assert(list);
 
-    lllog("Starting list [%p] destroing...", list);
+    lllog("\n\n<hr><h1>Starting list [%p] destroing...</h1>", list);
     list_dump(list);
 
     LinkedListError error = list_assert(list);
@@ -74,7 +76,7 @@ LinkedListError list_get_value(LinkedList *list, NodeID node_id, list_el_t *valu
     assert(node_id.index > 0);
     assert(value);
 
-    lllog("Starting list [%p] getting element at index %llu", list, node_id.index);
+    lllog("\n\n<hr><h1>Starting list [%p] getting element at index %llu</h1>", list, node_id.index);
 
     struct Node node = list->data[node_id.index];
     *value = node.value;
@@ -90,7 +92,7 @@ LinkedListError list_set_value(LinkedList *list, NodeID node_id, list_el_t value
     assert(list);
     assert(node_id.index > 0);
 
-    lllog("Starting list [%p] setting value " LIST_EL_SPECIFICATOR " to element at index %llu",
+    lllog("\n\n<hr><h1>Starting list [%p] setting value " LIST_EL_SPECIFICATOR " to element at index %llu</h1>",
           list, value, node_id.index);
     list_dump(list);
 
@@ -109,7 +111,7 @@ LinkedListError list_get_head(LinkedList *list, NodeID *head_node_id)
     assert(list);
     assert(head_node_id);
 
-    lllog("Starting list [%p] getting head", list);
+    lllog("\n\n<hr><h1>Starting list [%p] getting head</h1>", list);
 
     head_node_id->index = list->head;
 
@@ -123,7 +125,7 @@ LinkedListError list_get_tail(LinkedList *list, NodeID *tail_node_id)
     assert(list);
     assert(tail_node_id);
 
-    lllog("Starting list [%p] getting tail", list);
+    lllog("\n\n<hr><h1>Starting list [%p] getting tail</h1>", list);
 
     tail_node_id->index = list->tail;
 
@@ -138,7 +140,7 @@ LinkedListError list_get_next(LinkedList *list, NodeID node_id, NodeID *next_nod
     assert(node_id.index > 0);
     assert(next_node_id);
 
-    lllog("Starting list [%p] getting next element at index %llu", list, node_id.index);
+    lllog("\n\n<hr><h1>Starting list [%p] getting next element at index %llu</h1>", list, node_id.index);
 
     struct Node node = list->data[node_id.index];
     off_t next = node.next;
@@ -165,7 +167,7 @@ LinkedListError list_get_prev(LinkedList *list, NodeID node_id, NodeID *prev_nod
     assert(node_id.index > 0);
     assert(prev_node_id);
 
-    lllog("Starting list [%p] getting prev element at index %llu", list, node_id.index);
+    lllog("\n\n<hr><h1>Starting list [%p] getting prev element at index %llu</h1>", list, node_id.index);
 
     struct Node node = list->data[node_id.index];
     off_t prev = node.prev;
@@ -191,7 +193,7 @@ LinkedListError list_insert_head(LinkedList *list, list_el_t value, NodeID *new_
 {
     assert(list);
 
-    lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to head", list, value);
+    lllog("\n\n<hr><h1>Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to head</h1>", list, value);
     list_dump(list);
 
     struct Node new_head = {
@@ -241,7 +243,7 @@ LinkedListError list_insert_tail(LinkedList *list, list_el_t value, NodeID *new_
 {
     assert(list);
 
-    lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to tail", list, value);
+    lllog("\n\n<hr><h1>Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to tail</h1>", list, value);
     list_dump(list);
 
     struct Node new_tail = {
@@ -293,10 +295,15 @@ LinkedListError list_insert_after(LinkedList *list, NodeID node_id,
     assert(list);
     assert(node_id.index > 0);
 
-    lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " after %lld index", list, value, node_id.index);
+    lllog("\n\n<hr><h1>Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " after %lld index</h1>", list, value, node_id.index);
     list_dump(list);
 
     struct Node *prev_node = &list->data[node_id.index];
+    if (prev_node->prev == -1)
+    {
+        lllog("Error: you cant insert element after free memory cell");
+        return LL_INSERT_BY_FREE_ELEMENT;
+    }
     if (prev_node->next == 0)
     {
         lllog("Insert_after will be replaced with insert_head");
@@ -341,7 +348,7 @@ LinkedListError list_insert_before(LinkedList *list, NodeID node_id,
     assert(list);
     assert(node_id.index > 0);
 
-    lllog("Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " before %lld index", list, value, node_id.index);
+    lllog("\n\n<hr><h1>Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " before %lld index</h1>", list, value, node_id.index);
 
     struct Node *next_node = &list->data[node_id.index];
     if (next_node->prev == 0)
@@ -359,7 +366,7 @@ LinkedListError list_remove(LinkedList *list, NodeID node_id)
     assert(list);
     assert(node_id.index > 0);
 
-    lllog("Starting list [%p] removing element at %lld index", list, node_id.index);
+    lllog("\n\n<hr><h1>Starting list [%p] removing element at %lld index</h1>", list, node_id.index);
     list_dump(list);
 
     struct Node *node = &list->data[node_id.index];
@@ -422,6 +429,37 @@ void list_dump(LinkedList *list)
 {
     assert(list);
 
+    list_text_dump(list);
+
+    char *graph_filename = draw_graph(list);
+    if (graph_filename == NULL)
+        return;
+
+    // открываем сам файл чтобы убрать собщения с местом и временем вызова на картинке
+    FILE *logfile = fopen(LOGFILE_NAME, "a");
+    if (logfile == NULL)
+    {
+        free_ptr(graph_filename);
+        return;
+    }
+
+    fprintf(logfile, "\n\n");
+    fprintf(logfile, "<img src = \"%s\" alt = \"Здесь должен быть граф связного списка((\">", graph_filename);
+    fprintf(logfile, "\n\n\n\n");
+
+    free_ptr(graph_filename);
+    fclose(logfile);
+}
+
+const char *list_get_str_error(LinkedListError error)
+{
+    return LINKED_LIST_STR_ERRORS[error];
+}
+
+static void list_text_dump(LinkedList *list)
+{
+    assert(list);
+
     lllog("List [%p] dump ", list);
     lllog("{");
     lllog("    head = %lld", list->head);
@@ -463,17 +501,12 @@ void list_dump(LinkedList *list)
             note[0] = '\0';
         }
 
-        lllog("%5llu " LIST_EL_SPECIFICATOR " %6lld %6lld   %s", i, node.value, node.next, node.prev, note);
+        lllog("%5llu " LIST_EL_SPECIFICATOR_WITH_SIZE " %6lld %6lld   %s", i, node.value, node.next, node.prev, note);
 
         i++;
     }
     lllog("");
     lllog("}");
-}
-
-const char *list_get_str_error(LinkedListError error)
-{
-    return LINKED_LIST_STR_ERRORS[error];
 }
 
 // просто засовывает узел на первую свободную позицию и отдает в off_t *index указатель на эту позицию

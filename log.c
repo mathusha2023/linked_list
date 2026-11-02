@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <assert.h>
+#include <sys/stat.h>
 #include <stdarg.h>
 #include "config.h"
 
@@ -10,11 +11,13 @@
 
 void restart_log()
 {
+    create_folder_if_not_exists(LOG_DIRECTORY);
     FILE *zalupasanyfile = fopen(LOGFILE_NAME, "w");
     assert(zalupasanyfile);
     setbuf(zalupasanyfile, NULL);
 
-    fprintf(zalupasanyfile, "############# <%s> #############\n", PROGRAM_NAME);
+    fprintf(zalupasanyfile, "<pre>");
+    fprintf(zalupasanyfile, "<h1>############# &lt;%s&gt; #############\n</h1>", PROGRAM_NAME);
     fprintf(zalupasanyfile, "Compiled at: %s %s\n\n", __DATE__, __TIME__);
 
     fclose(zalupasanyfile);
@@ -55,3 +58,11 @@ void _logfunc(const char *__file__, int __line__, int need_console, const char *
 }
 
 #pragma GCC diagnostic pop
+
+void create_folder_if_not_exists(const char *path)
+{
+    struct stat st = {};
+
+    if (stat(path, &st) == -1)
+        mkdir(path, 0755);
+}

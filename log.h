@@ -12,7 +12,10 @@
 const size_t MAX_TIME_BUF = 100;
 
 void restart_log();
+void create_folder_if_not_exists(const char *path);
 void _logfunc(const char *__file__, int __line__, int need_console, const char *message, ...);
+
+#define close_log() FLOG("</pre>")
 
 #ifdef DISABLE_LOGS
 
