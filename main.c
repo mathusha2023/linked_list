@@ -27,15 +27,13 @@ int main(void)
     }
 
     error = list_insert_after(&list, node_id, 20, &node_id);
-    error = list_insert_tail(&list, 10, &node_id);
+    error = list_insert_head(&list, 10, &node_id);
 
     error = list_insert_after(&list, node_id, 40, &node_id);
-    error = list_insert_after(&list, node_id, 22120, &node_id);
+    error = list_insert_before(&list, node_id, 22120, &node_id);
     error = list_insert_after(&list, node_id, 222, &node_id);
 
     list_remove(&list, (NodeID){.index = 4});
-
-    draw_graph(&list);
 
     error = list_destroy(&list);
     if (error != LL_OK)

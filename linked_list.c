@@ -190,56 +190,6 @@ LinkedListError list_get_prev(LinkedList *list, NodeID node_id, NodeID *prev_nod
     return LL_OK;
 }
 
-// если new_head_node_id != NULL, то в него записывается node_id нового элемента
-LinkedListError list_insert_head(LinkedList *list, list_el_t value, NodeID *new_head_node_id)
-{
-    assert(list);
-
-    lllog("\n\n<hr><h1>Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to head</h1>", list, value);
-    list_dump(list);
-
-    struct Node new_head = {
-        .value = value,
-        .prev = list->head,
-        .next = 0};
-
-    off_t new_head_ind = 0;
-    LinkedListError error = insert_node(list, &new_head, &new_head_ind);
-    if (error != LL_OK)
-    {
-        lllog("Error while inserting node to list: %s", list_get_str_error(error));
-        return error;
-    }
-
-    // если ситуация когда голова и хвост показывают на нулевой элемент,
-    // то хвост тоже должен показывать на настоящий элемент
-    if (list->tail == 0)
-    {
-        list->tail = new_head_ind;
-    }
-
-    struct Node *old_head = &list->data[list->head];
-
-    // если голова 0 то мы не должны менять сам нулевой элемент (он зациклен)
-    if (list->head != 0)
-    {
-        old_head->next = new_head_ind;
-    }
-
-    list->head = new_head_ind;
-
-    if (new_head_node_id != NULL)
-    {
-        new_head_node_id->index = new_head_ind;
-    }
-
-    lllog("List [%p] inserting value " LIST_EL_SPECIFICATOR " to head successful: at index %lld",
-          list, value, new_head_ind);
-    list_dump(list);
-
-    return LL_OK;
-}
-
 // если new_tail_node_id != NULL, то в него записывается node_id нового элемента
 LinkedListError list_insert_tail(LinkedList *list, list_el_t value, NodeID *new_tail_node_id)
 {
@@ -250,8 +200,8 @@ LinkedListError list_insert_tail(LinkedList *list, list_el_t value, NodeID *new_
 
     struct Node new_tail = {
         .value = value,
-        .prev = 0,
-        .next = list->tail};
+        .prev = list->tail,
+        .next = 0};
 
     off_t new_tail_ind = 0;
     LinkedListError error = insert_node(list, &new_tail, &new_tail_ind);
@@ -273,7 +223,7 @@ LinkedListError list_insert_tail(LinkedList *list, list_el_t value, NodeID *new_
     // если хвост 0 то мы не должны менять сам нулевой элемент (он зациклен)
     if (list->tail != 0)
     {
-        old_tail->prev = new_tail_ind;
+        old_tail->next = new_tail_ind;
     }
 
     list->tail = new_tail_ind;
@@ -285,6 +235,56 @@ LinkedListError list_insert_tail(LinkedList *list, list_el_t value, NodeID *new_
 
     lllog("List [%p] inserting value " LIST_EL_SPECIFICATOR " to tail successful: at index %lld",
           list, value, new_tail_ind);
+    list_dump(list);
+
+    return LL_OK;
+}
+
+// если new_head_node_id != NULL, то в него записывается node_id нового элемента
+LinkedListError list_insert_head(LinkedList *list, list_el_t value, NodeID *new_head_node_id)
+{
+    assert(list);
+
+    lllog("\n\n<hr><h1>Starting list [%p] inserting value " LIST_EL_SPECIFICATOR " to head</h1>", list, value);
+    list_dump(list);
+
+    struct Node new_head = {
+        .value = value,
+        .prev = 0,
+        .next = list->head};
+
+    off_t new_head_ind = 0;
+    LinkedListError error = insert_node(list, &new_head, &new_head_ind);
+    if (error != LL_OK)
+    {
+        lllog("Error while inserting node to list: %s", list_get_str_error(error));
+        return error;
+    }
+
+    // если ситуация когда голова и хвост показывают на нулевой элемент,
+    // то хвост тоже должен показывать на настоящий элемент
+    if (list->tail == 0)
+    {
+        list->tail = new_head_ind;
+    }
+
+    struct Node *old_head = &list->data[list->head];
+
+    // если голова 0 то мы не должны менять сам нулевой элемент (он зациклен)
+    if (list->head != 0)
+    {
+        old_head->prev = new_head_ind;
+    }
+
+    list->head = new_head_ind;
+
+    if (new_head_node_id != NULL)
+    {
+        new_head_node_id->index = new_head_ind;
+    }
+
+    lllog("List [%p] inserting value " LIST_EL_SPECIFICATOR " to head successful: at index %lld",
+          list, value, new_head_ind);
     list_dump(list);
 
     return LL_OK;
@@ -308,8 +308,8 @@ LinkedListError list_insert_after(LinkedList *list, NodeID node_id,
     }
     if (prev_node->next == 0)
     {
-        lllog("Insert_after will be replaced with insert_head");
-        return list_insert_head(list, value, new_el_node_id);
+        lllog("Insert_after will be replaced with insert tail");
+        return list_insert_tail(list, value, new_el_node_id);
     }
 
     struct Node new_el = {
@@ -356,7 +356,7 @@ LinkedListError list_insert_before(LinkedList *list, NodeID node_id,
     if (next_node->prev == 0)
     {
         lllog("Node to insert before is tail, replaced with list_insert_tail");
-        return list_insert_tail(list, value, new_el_node_id);
+        return list_insert_head(list, value, new_el_node_id);
     }
 
     lllog("Inserting before node %lld replaced with inserting node after %lld", node_id.index, next_node->prev);
@@ -381,7 +381,7 @@ LinkedListError list_remove(LinkedList *list, NodeID node_id)
 
     if (prev_ind == 0)
     {
-        list->tail = next_ind;
+        list->head = next_ind;
     }
     else
     {
@@ -390,7 +390,7 @@ LinkedListError list_remove(LinkedList *list, NodeID node_id)
 
     if (next_ind == 0)
     {
-        list->head = prev_ind;
+        list->tail = prev_ind;
     }
     else
     {
