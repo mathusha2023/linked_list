@@ -65,7 +65,7 @@ typedef struct LinkedList
     off_t head;
     off_t tail;
     size_t capacity;
-    // size_t free;
+    size_t free;
 } LinkedList;
 
 // API для взаимодействия с двусвязным списком

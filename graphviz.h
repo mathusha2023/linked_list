@@ -19,12 +19,13 @@ const char TAIL_COLOR[] = "#F44336";
 const char FREE_FILL_COLOR[] = "#FFF3E0";
 const char FREE_COLOR[] = "#FB8C00";
 
-const char HINT_FILL_COLOR[] = "#37474F";
-const char HINT_COLOR[] = "#37474F";
-const char HINT_FONT_COLOR[] = "#FFFFFF";
-const char HINT_EDGE_COLOR[] = "#37474F";
+// const char HINT_FILL_COLOR[] = "#37474F";
+// const char HINT_COLOR[] = "#37474F";
+// const char HINT_FONT_COLOR[] = "#FFFFFF";
+// const char HINT_EDGE_COLOR[] = "#37474F";
 
 const char EDGE_COLOR[] = "#1E88E5";
+const char FREE_EDGE_COLOR[] = "#E65100";
 
 char *draw_graph(LinkedList *list);
 

@@ -12,7 +12,7 @@ int main(void)
     NodeID node_id = {};
     list_el_t value = 0;
 
-    error = list_init(&list, 10);
+    error = list_init(&list, 4);
     if (error != LL_OK)
     {
         LOG("Error while initialization linked list: %s", list_get_str_error(error));

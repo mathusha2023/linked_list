@@ -36,6 +36,7 @@ LinkedListError list_init(LinkedList *list, size_t start_size)
     list->head = 0;
     list->tail = 0;
     list->capacity = start_size + 1;
+    list->free = 1;
 
     fill_list_with_zeros(list, 1);
 
@@ -63,6 +64,7 @@ LinkedListError list_destroy(LinkedList *list)
     list->head = 0;
     list->tail = 0;
     list->capacity = 0;
+    list->free = 0;
 
     lllog("List [%p] destroing successful!", list);
     list_dump(list);
@@ -371,7 +373,7 @@ LinkedListError list_remove(LinkedList *list, NodeID node_id)
 
     struct Node *node = &list->data[node_id.index];
     off_t prev_ind = node->prev, next_ind = node->next;
-    if (prev_ind == -1 || next_ind == -1)
+    if (prev_ind == -1)
     {
         lllog("Error: element at index %lld to remove does not exist", node_id.index);
         return LL_EL_NOT_FOUND;
@@ -395,9 +397,11 @@ LinkedListError list_remove(LinkedList *list, NodeID node_id)
         list->data[next_ind].prev = prev_ind;
     }
 
-    node->next = -1;
-    node->prev = -1;
     node->value = 0;
+    node->prev = -1;
+    node->next = (off_t)list->free;
+
+    list->free = (size_t)node_id.index;
 
     lllog("List [%p] removing element at %lld index successful", list, node_id.index);
     list_dump(list);
@@ -464,6 +468,7 @@ static void list_text_dump(LinkedList *list)
     lllog("{");
     lllog("    head = %lld", list->head);
     lllog("    tail = %lld", list->tail);
+    lllog("    free = %llu", list->free);
     lllog("    capacity = %llu", list->capacity);
     lllog("");
     lllog("    #   value   next   prev   note");
@@ -480,15 +485,19 @@ static void list_text_dump(LinkedList *list)
         {
             strncpy(note, "ZERO", note_length);
         }
+        else if (i == list->free)
+        {
+            strncpy(note, "FREE", note_length);
+        }
         else if (node.prev == 0 && node.next == 0)
         {
             strncpy(note, "HEAD & TAIL", note_length);
         }
-        else if (node.prev == 0)
+        else if (i == (size_t)list->tail)
         {
             strncpy(note, "TAIL", note_length);
         }
-        else if (node.next == 0)
+        else if (i == (size_t)list->head)
         {
             strncpy(note, "HEAD", note_length);
         }
@@ -514,15 +523,12 @@ static LinkedListError insert_node(LinkedList *list, struct Node *node, off_t *i
 {
     assert(list);
     assert(node);
+    assert(index);
+    assert(list->free <= list->capacity);
 
     lllog("Starting insert node to list [%p] to the first free position", list);
 
-    size_t i = 1;
-
-    while (i < list->capacity && list->data[i].prev >= 0)
-        i++;
-
-    if (i == list->capacity)
+    if (list->free == 0)
     {
         LinkedListError error = grow_list(list);
         if (error != LL_OK)
@@ -532,8 +538,11 @@ static LinkedListError insert_node(LinkedList *list, struct Node *node, off_t *i
         }
     }
 
-    list->data[i] = *node;
-    *index = (off_t)i;
+    size_t free = list->free;
+    list->free = (size_t)list->data[free].next;
+
+    list->data[free] = *node;
+    *index = (off_t)free;
 
     lllog("Insert node to list [%p] successful. Position: %lld", list, *index);
 
@@ -557,6 +566,8 @@ static LinkedListError grow_list(LinkedList *list)
     list->capacity *= 2;
     fill_list_with_zeros(list, list->capacity / 2);
 
+    list->free = list->capacity / 2;
+
     list_dump(list);
 
     lllog("List [%p] growing successful. New capacity: %llu", list, list->capacity);
@@ -570,13 +581,18 @@ static void fill_list_with_zeros(LinkedList *list, size_t start_index)
 
     lllog("Starting filling list [%p] with zeros, start index: %llu", list, start_index);
 
-    struct Node void_node = {.value = 0, .prev = -1, .next = -1};
-
-    for (size_t i = start_index; i < list->capacity; i++)
+    for (size_t i = start_index; i < list->capacity - 1; i++)
     {
         assert(i < list->capacity);
-        list->data[i] = void_node;
+
+        list->data[i].value = 0;
+        list->data[i].prev = -1;
+        list->data[i].next = (off_t)i + 1;
     }
+
+    list->data[list->capacity - 1].value = 0;
+    list->data[list->capacity - 1].prev = -1;
+    list->data[list->capacity - 1].next = 0;
 
     lllog("Filling list [%p] with zeros successful", list);
 }

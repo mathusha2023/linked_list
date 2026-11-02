@@ -106,14 +106,14 @@ int generate_graph_file(LinkedList *list)
             fill_color = HEAD_FILL_COLOR;
             color = HEAD_COLOR;
         }
-        else if (node->next == 0) // голова
+        else if (i == (size_t)list->head) // голова
         {
             hint = "HEAD";
             hint_label = hint;
             fill_color = HEAD_FILL_COLOR;
             color = HEAD_COLOR;
         }
-        else if (node->prev == 0) // хвост
+        else if (i == (size_t)list->tail) // хвост
         {
             hint = "TAIL";
             hint_label = hint;
@@ -122,7 +122,7 @@ int generate_graph_file(LinkedList *list)
         }
         else if (node->prev == -1) // свободный элемент
         {
-            hint = "\0";
+            hint = i == list->free ? "FREE" : "\0"; // если это первый свободный элемент то делаем пометку
             hint_label = hint;
             fill_color = FREE_FILL_COLOR;
             color = FREE_COLOR;
@@ -137,8 +137,8 @@ int generate_graph_file(LinkedList *list)
 
         if (hint[0])
         {
-            fprintf(file, "  %s [label = \"%s\"; fillcolor=\"%s\"; color=\"%s\"; fontcolor=\"%s\"];\n  { rank = same; %s -> V%zu [color=\"%s\";]}\n",
-                    hint, hint_label, HINT_FILL_COLOR, HINT_COLOR, HINT_FONT_COLOR, hint, i, HINT_EDGE_COLOR);
+            fprintf(file, "  %s [label = \"%s\"; fillcolor=\"%s\"; color=\"%s\"];\n  { rank = same; %s -> V%zu [color=\"%s\";]}\n",
+                    hint, hint_label, fill_color, color, hint, i, color);
         }
 
         fprintf(file, "  V%zu [label = \"index: %zu | value: " LIST_EL_SPECIFICATOR " | {prev: %lld | next: %lld}\"; fillcolor = \"%s\"; color = \"%s\";];\n",
@@ -161,7 +161,10 @@ int generate_graph_file(LinkedList *list)
         // рисуем стрелку только если узел не пустой (участвует в списке)
         if (node->next > 0)
         {
-            fprintf(file, "  V%zu -> V%lld [dir=both; constraint=false];\n", i, node->next);
+            if (node->prev != -1)
+                fprintf(file, "  V%zu -> V%lld [dir=both; constraint=false];\n", i, node->next);
+            else
+                fprintf(file, "  V%zu -> V%lld [constraint=false; color=\"%s\";];\n", i, node->next, FREE_EDGE_COLOR);
         }
     }
 
