@@ -92,7 +92,22 @@ int generate_graph_file(LinkedList *list)
         const char *hint_label = "\0";
         const char *fill_color = NULL, *color = NULL;
 
-        if (i == 0)
+        NodeError error = node_assert(list, (off_t)i);
+        if (error == NODE_FREE)
+        {
+            hint = i == list->free ? "FREE" : "\0"; // если это первый свободный элемент то делаем пометку
+            hint_label = hint;
+            fill_color = FREE_FILL_COLOR;
+            color = FREE_COLOR;
+        }
+        else if (error != NODE_OK)
+        {
+            hint = "\0";
+            hint_label = hint;
+            fill_color = ERROR_FILL_COLOR;
+            color = ERROR_COLOR;
+        }
+        else if (i == 0)
         {
             hint = "ZERO";
             hint_label = hint;
@@ -119,13 +134,6 @@ int generate_graph_file(LinkedList *list)
             hint_label = hint;
             fill_color = TAIL_FILL_COLOR;
             color = TAIL_COLOR;
-        }
-        else if (node->prev == -1) // свободный элемент
-        {
-            hint = i == list->free ? "FREE" : "\0"; // если это первый свободный элемент то делаем пометку
-            hint_label = hint;
-            fill_color = FREE_FILL_COLOR;
-            color = FREE_COLOR;
         }
         else
         {
@@ -158,13 +166,23 @@ int generate_graph_file(LinkedList *list)
     {
         struct Node *node = &list->data[i];
 
-        // рисуем стрелку только если узел не пустой (участвует в списке)
-        if (node->next > 0)
+        assert(node->next < (off_t)list->capacity);
+
+        NodeError error = node_assert(list, (off_t)i);
+        if (error == NODE_FREE)
         {
-            if (node->prev != -1)
-                fprintf(file, "  V%zu -> V%lld [dir=both; constraint=false];\n", i, node->next);
-            else
+            if (node->next != 0)
                 fprintf(file, "  V%zu -> V%lld [constraint=false; color=\"%s\";];\n", i, node->next, FREE_EDGE_COLOR);
+        }
+        else if (error == NODE_OK)
+        {
+            if ((off_t)i != list->tail)
+                fprintf(file, "  V%zu -> V%lld [dir=both; constraint=false];\n", i, node->next);
+        }
+        else // ошибка
+        {
+            if (node->next >= 0) // показываем куда ведет ошибочная стрелка только если элемент назначения есть
+                fprintf(file, "  V%zu -> V%lld [constraint=false; color=\"%s\";];\n", i, node->next, ERROR_EDGE_COLOR);
         }
     }
 

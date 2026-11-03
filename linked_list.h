@@ -32,7 +32,18 @@ typedef enum LinkedListError
     LL_OVERFLOW,
     LL_EL_NOT_FOUND,
     LL_INSERT_BY_FREE_ELEMENT,
+    LL_HEAD_OR_TALE_NOT_CORRECT,
 } LinkedListError;
+
+typedef enum NodeError
+{
+    NODE_OK,
+    NODE_FREE,
+    NODE_INCORRECT_NEXT,
+    NODE_INCORRECT_PREV,
+    NODE_INCORRECT_HEAD,
+    NODE_INCORRECT_TAIL,
+} NodeError;
 
 static const char *LINKED_LIST_STR_ERRORS[] = {
     "LL_OK",
@@ -45,6 +56,16 @@ static const char *LINKED_LIST_STR_ERRORS[] = {
     "LL_OVERFLOW",
     "LL_EL_NOT_FOUND",
     "LL_INSERT_BY_FREE_ELEMENT",
+    "LL_HEAD_OR_TALE_NOT_CORRECT",
+};
+
+static const char *NODE_STR_ERRORS[] = {
+    "NODE_OK",
+    "NODE_FREE",
+    "NODE_INCORRECT_NEXT",
+    "NODE_INCORRECT_PREV",
+    "NODE_INCORRECT_HEAD",
+    "NODE_INCORRECT_TAIL",
 };
 
 struct Node
@@ -89,9 +110,11 @@ LinkedListError list_insert_before(LinkedList *list, NodeID node_id,
 
 LinkedListError list_remove(LinkedList *list, NodeID node_id);
 
+NodeError node_assert(LinkedList *list, off_t node_index);
 LinkedListError list_assert(LinkedList *list);
 
 void list_dump(LinkedList *list);
 const char *list_get_str_error(LinkedListError error);
+const char *node_get_str_error(NodeError error);
 
 #endif // LINKED_LIST_H

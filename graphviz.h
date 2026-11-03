@@ -13,11 +13,14 @@ const char NODE_COLOR[] = "#1E88E5";
 const char HEAD_FILL_COLOR[] = "#E8F5E9";
 const char HEAD_COLOR[] = "#4CAF50";
 
-const char TAIL_FILL_COLOR[] = "#FFEBEE";
-const char TAIL_COLOR[] = "#F44336";
+const char TAIL_FILL_COLOR[] = "#cb98a0";
+const char TAIL_COLOR[] = "#62504f";
 
 const char FREE_FILL_COLOR[] = "#FFF3E0";
 const char FREE_COLOR[] = "#FB8C00";
+
+const char ERROR_FILL_COLOR[] = "#f37d7d";
+const char ERROR_COLOR[] = "#FF0000";
 
 // const char HINT_FILL_COLOR[] = "#37474F";
 // const char HINT_COLOR[] = "#37474F";
@@ -26,6 +29,7 @@ const char FREE_COLOR[] = "#FB8C00";
 
 const char EDGE_COLOR[] = "#1E88E5";
 const char FREE_EDGE_COLOR[] = "#E65100";
+const char ERROR_EDGE_COLOR[] = "#FF0000";
 
 char *draw_graph(LinkedList *list);
 

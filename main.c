@@ -33,7 +33,10 @@ int main(void)
     error = list_insert_before(&list, node_id, 22120, &node_id);
     error = list_insert_after(&list, node_id, 222, &node_id);
 
-    list_remove(&list, (NodeID){.index = 4});
+    // list.data[1].next = 3;
+
+    error = list_remove(&list, (NodeID){.index = 4});
+    error = list_remove(&list, (NodeID){.index = list.head});
 
     error = list_destroy(&list);
     if (error != LL_OK)
